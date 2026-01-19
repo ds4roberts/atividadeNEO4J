@@ -1,0 +1,114 @@
+MERGE (:User {name: 'João' , city: 'São Paulo', born:'1980'});
+MERGE (:User {name: 'Maria', city: 'Rio de Janeiro', born:'1981'});
+MERGE (:User {name: 'Ricardo', city: 'Minas Gerais', born:'1985'});
+MERGE (:User {name: 'Renata', city: 'Espirito Santo', born:'1970'});
+MERGE (:User {name: 'Luis', city: 'Goias', born:'1976'});
+MERGE (:User {name: 'Mario', city: 'São Paulo', born:'1990'});
+MERGE (:User {name: 'Alberto', city: 'São Paulo', born:'2000'});
+MERGE (:User {name: 'Carlos', city: 'Rio de Janeiro', born:'2005'});
+MERGE (:User {name: 'Ana', city: 'Minas Gerais', born:'2002'});
+MERGE (:User {name: 'Clara', city: 'São Paulo', born:'1989'});
+
+MERGE (:Movie {title: 'Lilo e Stitch', year: '2025', genre: 'animation', studio:'Disney'});
+MERGE (:Movie {title: 'Zootopia 2', year: '2025', genre: 'animation', studio:'Disney' });
+MERGE (:Movie {title: 'Jurassic World: Rebirth', year: '2025', genre: 'adventure' , studio:'Universal Pictures' });
+MERGE (:Movie {title: 'Minecraft', year: '2025', genre: 'adventure' ,studio:'Warner Bros' });
+MERGE (:Movie {title: 'How to Train Your Dragon', year: '2025', genre: 'adventure' ,studio:'DreamWorks / Universal' });
+MERGE (:Movie {title: 'Inside Out 2', year: '2024', genre: 'animation ' ,studio:'Disney/Pixar' });
+MERGE (:Movie {title: 'Deadpool & Wolverine', year: '2024', genre: 'action' ,studio:'Marvel Studios / Disney' });
+MERGE (:Movie {title: 'Moana 2', year: '2024', genre: 'animation' ,studio:'Disney' });
+MERGE (:Movie {title: 'Barbie', year: '2023', genre: 'animation' ,studio:'Warner Bros' });
+MERGE (:Movie {title: 'Oppenheimer', year: '2023', genre: 'documentary' ,studio:'Universal Pictures' });
+
+
+MERGE (:Director {title: 'Lilo e Stitch', year: '2025', name:'Chris Sanders'});
+MERGE (:Director {title: 'Lilo e Stitch', year: '2025', name:'Dean DeBlois'});
+MERGE (:Director {title: 'Zootopia 2', year: '2025', name:'Rich Moore'});
+MERGE (:Director {title: 'Zootopia 2', year: '2025', name:'Byron Howard'});
+MERGE (:Director {title: 'Jurassic World: Rebirth', year: '2025',name:'Gareth Edwards'});
+MERGE (:Director {title: 'Stranger Things', year: '2025', name:'Matt Duffer'});
+MERGE (:Director {title: 'Stranger Things', year: '2025', name:'Ross Duffer'});
+ 
+MERGE (:Studio {name: 'Disney'});
+MERGE (:Studio {name: 'Universal Pictures'});
+MERGE (:Studio {name: 'Netflix'});
+
+MERGE (:Series {title: 'Stranger Things', year: '2025', genre: 'Science Fiction' , studio:'Netflix'});
+
+MERGE (:Actor {name: 'Chris Sanders' , born:'1980', title:'Lilo e Stitch'} );
+MERGE (:Actor {name: 'Daveight Chase' , born:'1981', title:'Lilo e Stitch'});
+MERGE (:Actor {name: 'David Ogden Stiers' , born:'1982', title:'Lilo e Stitch'});
+MERGE (:Actor {name: 'Kevin McDonald' , born:'1983', title:'Lilo e Stitch'});
+MERGE (:Actor {name: 'Kevin Michael Richardson' , born:'1980', title:'Lilo e Stitch'});
+MERGE (:Actor {name: 'Shakira' , born:'1981', title:'Zootopia 2'});
+MERGE (:Actor {name: 'Macaulay Culkin' , born:'1982', title:'Zootopia 2'});
+MERGE (:Actor {name: 'Scarlett Johansson' , born:'1981', title:'Jurassic World: Rebirth'});
+MERGE (:Actor {name: 'Jonathan Bailey' , born:'1982', title:'Jurassic World: Rebirth'});
+MERGE (:Actor {name: 'Luna Blaise' , born:'1983', title:'Jurassic World: Rebirth'});
+MERGE (:Actor {name: 'Millie Bobby Brown' , born:'1983', title:'Stranger Things'});
+MERGE (:Actor {name: 'Finn Wolfhard' , born:'1983', title:'Stranger Things'});
+MERGE (:Actor {name: 'Noah Schnapp' , born:'1983', title:'Stranger Things'});
+MERGE (:Actor {name: 'Caleb McLaughlin' , born:'1983', title:'Stranger Things'});
+MERGE (:Actor {name: 'Sadie Sink' , born:'1983', title:'Stranger Things'});
+MERGE (:Actor {name: 'Gaten Matarazzo', born:'1983', title:'Stranger Things'});
+MERGE (:Actor {name: 'David Harbour' , born:'1983', title:'Stranger Things'});
+MERGE (:Actor {name: 'Winona Ryder' , born:'1983', title:'Stranger Things'});
+
+MERGE (:Genre {genre: 'Animation' });
+MERGE (:Genre {genre: 'Science Fiction' });
+MERGE (:Genre {genre: 'Adventure' });
+MERGE (:Genre {genre: 'Horror' });
+MERGE (:Genre {genre: 'Mystery' });
+
+MATCH (joao:User {name:'João'})
+MATCH (lilo:Movie {title:'Lilo e Stitch'})
+MERGE (joao)-[:WATCHED]->(lilo);
+
+MATCH (joao:User {name:'João'})
+MATCH (stranger:Series {title:'Stranger Things'})
+MERGE (joao)-[:WATCHED]->(stranger);
+
+MATCH (chris:Actor {name:'Chris Sanders'})
+MATCH (lilo:Movie {title:'Lilo e Stitch'})
+MERGE (chris)-[:ACTED_IN]-(lilo);
+
+MATCH (disney:Studio {name: "Disney"})
+MATCH (lilo:Movie {title: "Lilo e Stitch"})
+MERGE (disney)-[:PRODUCED]->(lilo);
+
+MATCH (millie:Actor {name: "Millie Bobby Brown"})
+MATCH (stranger:Series {title: "Stranger Things"})
+MERGE (millie)-[:ACTED_IN]->(stranger);
+
+MATCH (netflix:Studio {name: "Netflix"})
+MATCH (stranger:Series {title: "Stranger Things"})
+MERGE (netflix)-[:PRODUCED]->(stranger);
+
+MATCH (diretor:Director {name: "Chris Sanders"})
+MATCH (movie:Movie {title: "Lilo e Stitch"})
+MERGE (diretor)-[:DIRECTED]->(movie);
+
+MATCH (genero:Genre {genre: "Science Fiction"})
+MATCH (series:Series {title:'Stranger Things'})
+MERGE (series)-[:IN_GENRE]->(genero);
+
+MATCH (genero:Genre {genre: "Horror"})
+MATCH (series:Series {title:'Stranger Things'})
+MERGE (series)-[:IN_GENRE]->(genero);
+
+MATCH (genero:Genre {genre: "Mystery"})
+MATCH (series:Series {title:'Stranger Things'})
+MERGE (series)-[:IN_GENRE]->(genero);
+
+MATCH (genero:Genre {genre: "Animation"})
+MATCH (movie:Movie {title:'Lilo e Stitch'})
+MERGE (movie)-[:IN_GENRE]->(genero);
+
+MATCH (series:Series {title: "Stranger Things"})
+MATCH (diretor:Director {name: "Matt Duffer"})
+MERGE (diretor)-[:DIRECTED]->(series);
+
+MATCH (series:Series {title: "Stranger Things"})
+MATCH (diretor:Director {name: "Ross Duffer"})
+MERGE (diretor)-[:DIRECTED]->(series);
+
