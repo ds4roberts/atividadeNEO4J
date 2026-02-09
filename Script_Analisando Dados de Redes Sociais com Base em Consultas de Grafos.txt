@@ -1,0 +1,265 @@
+//Analisando Dados de Redes Sociais por Religião com Base em Consultas de Grafos
+
+//MODELOS DE DADOS
+
+Representa usuários da plataforma.
+u:User
+Campo				Tipo	Descrição
+---------------------------------------
+user_id				STRING	Identificador único
+nome				  STRING	Nome do usuário
+idade			  	INTEGER	Idade
+genero				STRING	MASC / FEM / Outro
+engajamento_score	FLOAT	Score agregado de engajamento
+
+
+Nó da região geográfica do usuário
+r:Região
+Campo				Tipo	Descrição
+---------------------------------------
+regiao_id			STRING	ID único
+nome				  STRING	Nome da região
+estado				STRING	Estado
+pais				  STRING	País
+
+
+Nó da religião do usuário
+x:Religiao
+Campo				Tipo	Descrição
+---------------------------------------
+religiao_id	  STRING	ID único
+nome				  STRING	Nome da religião	
+
+
+Nó Renda
+ Campo      Tipo     Descrição            
+ ---------  -------  ---------------------
+ renda_id   STRING   ID único             
+ faixa      STRING   Faixa de renda mensal
+ renda_min  INTEGER  Valor mínimo         
+ renda_max  INTEGER  Valor máximo         
+
+=Relacionamentos=======================================================
+
+ Relacionamento   Origem → Destino  Descrição                           
+----------------  ----------------  ------------------------------------
+ `VIVE_EM`        User → Regiao     Usuário reside na região            
+ `SEGUE_RELIGIAO` User → Religiao   Religião declarada                  
+ `POSSUI_RENDA`   User → Renda      Faixa de renda                      
+ `CONECTA_COM`    User → User       Conexão entre usuários              
+ `INTERAGE_COM`   User → User       Interação 
+
+=COPIAR ABAIXO=====================================================================================================================
+
+
+//=CONSTRAINTS=============================================================ok
+//1-Cria index par váriaveis únicas
+CREATE CONSTRAINT user_id_unique IF NOT EXISTS
+FOR (u:User)
+REQUIRE u.user_id IS NODE KEY;
+
+CREATE CONSTRAINT regiao_id_unique IF NOT EXISTS
+FOR (r:Regiao)
+REQUIRE r.regiao_id NODE KEY;
+
+CREATE CONSTRAINT religiao_id_unique IF NOT EXISTS
+FOR (re:Religiao)
+REQUIRE re.religiao_id IS NODE KEY;
+
+CREATE CONSTRAINT renda_id_unique IF NOT EXISTS
+FOR (rd:Renda)
+REQUIRE rd.renda_id IS NODE KEY;
+
+CREATE CONSTRAINT plataforma_id_unique IF NOT EXISTS
+FOR (p:Plataforma)
+REQUIRE p.plataforma_id IS NODE KEY;
+
+//=INDEXES==================================================================ok
+//2-Cria indexação dos campos
+CREATE INDEX user_engajamento_index IF NOT EXISTS
+FOR (u:User)
+ON (u.engajamento_score);
+
+CREATE INDEX regiao_nome_index IF NOT EXISTS
+FOR (r:Regiao)
+ON (r.nome);
+
+CREATE INDEX religiao_nome_index IF NOT EXISTS
+FOR (re:Religiao)
+ON (re.nome);
+
+CREATE INDEX renda_faixa_index IF NOT EXISTS
+FOR (rd:Renda)
+ON (rd.faixa);
+
+CREATE INDEX plataforma_index IF NOT EXISTS
+FOR (p:Plataforma)
+ON (p.plataforma);
+
+//DADOS PARA OS EXEMPLOS
+
+//=REGIÃO===========================================================================
+//4- Criação dos dados da região
+CREATE
+(r1:Regiao {regiao_id:'R1', nome:'Grande São Paulo', estado:'SP', pais:'Brasil'}),
+(r2:Regiao {regiao_id:'R2', nome:'Interior SP', estado:'SP', pais:'Brasil'}),
+(r3:Regiao {regiao_id:'R3', nome:'Bahia', estado:'BA', pais:'Brasil'}),
+(r4:Regiao {regiao_id:'R4', nome:'Rio Grande do Norte', estado:'RN', pais:'Brasil'}),
+(r5:Regiao {regiao_id:'R5', nome:'Minas Gerais', estado:'MG', pais:'Brasil'});
+
+//=RELIGIÃO==========================================================================
+//5 - Criação dos dados de religião
+CREATE
+(re1:Religiao {religiao_id:'REL1', nome:'Católica'}),
+(re2:Religiao {religiao_id:'REL2', nome:'Evangélica'}),
+(re3:Religiao {religiao_id:'REL3', nome:'Sem Religião'}),
+(re4:Religiao {religiao_id:'REL4', nome:'Ubanda'}),
+(re5:Religiao {religiao_id:'REL5', nome:'Ateu'});
+
+//=RENDA============================================================================
+//6 - Criação dos dados de renda
+CREATE
+(rd1:Renda {renda_id:'RD1', faixa:'Até 2 salários', renda_min:0, renda_max:2800}),
+(rd2:Renda {renda_id:'RD2', faixa:'2 a 5 salários', renda_min:2800, renda_max:7000}),
+(rd3:Renda {renda_id:'RD3', faixa:'Acima de 5 salários', renda_min:7000, renda_max:20000}),
+(rd4:Renda {renda_id:'RD4', faixa:'Sem Renda', renda_min:0, renda_max:0});
+
+//=USUÁRIOS==========================================================================
+//7 - Rotina para criação de 15 usuários 
+UNWIND range(1,15) AS i
+CREATE (:User {
+  user_id: 'U' + i,
+  nome: 'Usuario_' + i,
+  idade: 18 + i,
+  genero: CASE WHEN i % 2 = 0 THEN 'F' ELSE 'M' END,
+  email: 'usuario' + i + '@gmail.com',
+  engajamento_score: round(rand()*100)/10
+});
+
+
+//=PLATAFORMA============================================================================
+//8 - Criação dos dados de renda
+CREATE
+(p1:Plataforma {plataforma_id:'P1', plataforma:'Youtube'}),
+(p2:Plataforma {plataforma_id:'P2', plataforma:'Instagram'}),
+(p3:Plataforma {plataforma_id:'P3', plataforma:'Facebook'}),
+(p4:Plataforma {plataforma_id:'P4', paltaforma:'TikTok'});
+
+//=RELACIONAMENTOS (MERGE) ==========================================================
+//9 - Relacionamento aleatório do usuário com região
+MATCH (u:User), (r:Regiao)
+WITH u, collect(r) AS regioes
+WITH u,  regioes[toInteger(rand() * size(regioes))] AS regiaoAleatoria
+CREATE (u)-[:VIVE_EM {codigo: regiaoAleatoria.codigo}]->(regiaoAleatoria);
+
+//10- Relacionamento aleatório do usuário com religião
+MATCH (u:User), (rel:Religiao)
+WITH u, collect(rel) AS religiao
+WITH u,  religiao[toInteger(rand() * size(religiao))] AS religiaoAleatoria
+CREATE (u)-[:SEGUE_RELIGIAO {codigo: religiaoAleatoria.codigo}]->(religiaoAleatoria);
+
+//11 - Relacionamento aleatório do usuário que possui renda
+MATCH (u:User), (rd:Renda)
+WITH u, collect(rd) AS renda
+WITH u,  renda[toInteger(rand() * size(renda))] AS rendaAleatoria
+CREATE (u)-[:POSSUI_RENDA {codigo: rendaAleatoria.codigo}]->(rendaAleatoria);
+
+//12 - Usuários que se conectam
+MATCH (u1:User), (u2:User)
+// engajamento >=5
+WHERE u1 <> u2 AND u1.engajamento_score >= 5
+MERGE (u1)-[:CONECTA_COM]->(u2);
+
+//13 - Conexão Plataformas
+MATCH (u:User), (p:Plataforma)
+WITH u, collect(p) AS plataforma
+WITH u,  plataforma[toInteger(rand() * size(plataforma))] AS plataformaAleatoria
+CREATE (u)-[:USA_PLATAFORMA]->(plataformaAleatoria);
+
+//14 - Contagem de interações
+MATCH (u1:User), (u2:User)
+WHERE u1 <> u2 AND u1.engajamento_score >= 0.1
+MERGE (u1)-[:INTERAGE_COM {frequencia: toInteger(rand()*20), tipo:'mensagem'}]->(u2);
+
+
+//=PERGUNTAS==================================================================
+//15)Com quais usuários o usuário 1 interage
+MATCH (u1:User {nome:'Usuario_1'})-[r:INTERAGE_COM]->(u2:User)
+//RETURN u1.nome , u2.nome
+RETURN u1, r, u2;
+
+
+//16)Quantos usuários o usuário 1 interage
+//MATCH (u1:User {nome:'Usuario_1'})-[:INTERAGE_COM]->(u2:User)
+//RETURN u1.nome AS nome_do_usuário, count(DISTINCT(u2.nome)) AS total_usuarios_interacao
+MATCH (u1:User {nome:'Usuario_1'})-[r:INTERAGE_COM]->(u2:User)
+RETURN u1 , r , u2;
+
+//17)Quantos usuários cada usuário interage
+MATCH (u1:User )-[:INTERAGE_COM]->(u2:User)
+WHERE u1.nome <> u2.nome
+RETURN u1.nome AS nome_do_usuário, count(DISTINCT(u2.nome)) AS total_usuarios_interacao;
+
+//18)Qual região têm usuários mais engajados?
+MATCH (u:User)-[:VIVE_EM]->(r:Regiao)
+RETURN r.nome, round(avg(u.engajamento_score)*10)/10 AS engajamento_medio
+ORDER BY engajamento_medio DESC
+LIMIT 1;
+
+//19) Qual engajamento médio por faixa salarial?
+MATCH (u:User)-[:POSSUI_RENDA]->(rd:Renda)
+RETURN rd.faixa, round(avg(u.engajamento_score)*10)/10 AS engajamento_medio
+ORDER BY engajamento_medio DESC;
+
+//20)Qual religião gera mais conexões?
+MATCH (u:User)-[:SEGUE_RELIGIAO]->(re:Religiao)
+MATCH (u)-[:CONECTA_COM]->(outro:User)
+RETURN re.nome, count(DISTINCT outro) AS total_conexoes
+ORDER BY total_conexoes DESC
+LIMIT 1;
+
+//21)Usuários influentes por região (centralidade simples)
+MATCH (u:User)-[:VIVE_EM]->(r:Regiao)
+MATCH (u)-[:CONECTA_COM]->(o:User)
+RETURN r.nome, u.nome, count(o) AS conexoes
+ORDER BY conexoes DESC
+LIMIT 5;
+
+//22)Quais são os 3 usuários que mais possuem engajamento por região (score_engajamento)
+//valor normalizado onde 0 é nenhum e 10 é máximo engajamento
+MATCH (u:User)
+WITH
+  min(u.engajamento_score) AS minScore,
+  max(u.engajamento_score) AS maxScore
+MATCH (u:User)-[:VIVE_EM]->(r:Regiao)
+RETURN
+  u.nome,
+  r.nome AS regiao,
+  CASE
+    WHEN maxScore = minScore THEN 0.0
+    ELSE round((u.engajamento_score - minScore) / (maxScore - minScore)*10)/10
+  END AS score_normalizado
+ORDER BY score_normalizado DESC
+LIMIT 3;
+
+//23-Quais são os 3 usuários que mais possuem engajamento por região e qual plataforma cada um usa.
+MATCH (u:User)
+
+WITH
+  min(u.engajamento_score) AS minScore,
+  max(u.engajamento_score) AS maxScore
+MATCH (u:User)-[:VIVE_EM]->(r:Regiao)
+match (u)-[:USA_PLATAFORMA]->(p:Plataforma)
+WHERE p.plataforma is NOT NULL
+RETURN
+  u.nome AS Usuário,
+  r.nome AS Região,
+  p.plataforma AS Plataforma,
+  CASE
+    WHEN maxScore = minScore THEN 0.0
+    ELSE round((u.engajamento_score - minScore) / (maxScore - minScore)*10)/10
+  END AS score_normalizado
+ORDER BY score_normalizado DESC
+LIMIT 3;
+
+
